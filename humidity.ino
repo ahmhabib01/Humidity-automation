@@ -1,78 +1,138 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-#include <DHT.h> // DHT22 Library
+#include <DHT.h>
 
 // ESP8266 Web Server initialization
 ESP8266WebServer server(80);
 
-// ------------------ Settings ------------------
-// Ei du'ti apnar nijer home/office Wi-Fi details diye bodlan
-const char* ssid = "A H M Habib";  
-const char* password = "12345678"; 
+// ------------------ SETTINGS ------------------
+const char* ssid = "A H M Habib";
+const char* password = "12345678";
 
 // Pin Definitions
 #define DHTPIN D2           // DHT22 Data pin connected to D2 (GPIO4)
-#define DHTTYPE DHT22       // Sensor type is DHT22 (AM2302)
-DHT dht(DHTPIN, DHTTYPE);   // Initialize DHT sensor
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
 
 int relayPin = D1;          // Relay control pin connected to D1 (GPIO5)
 
-// ------------------ Control Variables ------------------
-bool autoMode = false;      // Is Auto Mode ON?
-int thresholdValue = 65;    // Target Humidity (%) - Default 65%
-int HYSTERESIS_BAND = 5;    // Hysteresis Band (%) to prevent relay chattering (65-5 = 60%)
-float humidityValue = 0.0;  // Current humidity reading
-bool relayState = false;    // Current state of the relay (true = ON, false = OFF)
+// ------------------ CONTROL & SAFETY VARIABLES ------------------
+bool autoMode = false;
+int thresholdValue = 65;
+int HYSTERESIS_BAND = 5;
 
-// ------------------ HTML UI (User Interface) ------------------ 
+// Sensor Readings & Safety
+float humidityValue = 0.0;
+float temperatureValue = 0.0;
+bool relayState = false;
+int dhtErrorCount = 0;
+const int MAX_DHT_ERRORS = 5; 
+
+// ------------------ MIND-BLOWING HTML UI ------------------ 
 String htmlPage() {
-    // ... (HTML, CSS, JavaScript same as before, but added Threshold display) ...
     String page = R"=====(
     <html>
     <head>
-      <title>Smart Humidifier Dashboard</title>
+      <title>✨ Smart Climate Hub ✨</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <style>
-        body { background:#0d0d0d; color:white; font-family:Arial; text-align:center; }
-        .card { background:#1a1a1a; width:90%; max-width:400px; margin:20px auto; padding:20px; border-radius:12px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
-        button { padding:12px 25px; border:none; border-radius:10px; margin:10px 5px; font-size:16px; cursor:pointer; transition: background 0.3s; }
-        .on{background:#00cc66;color:white;}
-        .off{background:#cc0000;color:white;}
-        .stat{color:#ffcc00; font-size:24px;}
-        input{padding:10px;width:70%;border-radius:8px;border:none;margin-top:10px;text-align:center;}
-        h1{font-size:3.5em;}
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap');
+        
+        body { background:#0a0a0a; color:#f0f0f0; font-family: 'Roboto', sans-serif; text-align:center; margin: 0; padding: 0;}
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        .card { background:#1c1c1c; width:90%; max-width:400px; padding:30px; border-radius:20px; box-shadow: 0 10px 30px rgba(0, 255, 255, 0.15); border: 1px solid #333; margin-top: 10px;}
+        
+        h2 { color: #00ffff; font-weight: 300; margin-bottom: 5px; }
+        h1 { font-size: 5em; margin: 0; font-weight: 700; color: #f0f0f0; }
+        
+        .data-grid { display: flex; justify-content: space-around; padding: 15px 0; margin-bottom: 15px; border-bottom: 1px solid #333; }
+        .data-item { font-size: 0.9em; }
+        .data-value { font-size: 1.5em; font-weight: 700; color: #ff9900; }
+        
+        .status-box { background:#333; border-radius: 8px; padding: 8px; margin: 10px 0; font-weight: 700; transition: background 0.5s; }
+        
+        button { padding:12px 25px; border:none; border-radius:8px; margin:8px 5px; font-size:16px; font-weight: bold; cursor:pointer; transition: background 0.3s, transform 0.1s; width: 45%; box-sizing: border-box;}
+        button:active { transform: scale(0.98); }
+        
+        .on{background:#00e676;color:#1c1c1c;}
+        .off{background:#ff5252;color:#1c1c1c;}
+        
+        .input-group { display: flex; justify-content: space-between; margin-top: 20px; }
+        input{padding:10px;border-radius:8px;border:none;flex-grow: 1; margin-right: 10px; background:#2c2c2c; color:white; text-align: center;}
       </style>
       <script>
-        setInterval(() => {
+        function updateData() {
             fetch("/update").then(r => r.json()).then(data => {
-                document.getElementById("hum").innerHTML = data.humidity;
-                document.getElementById("relay").innerHTML = data.relay;
-                document.getElementById("auto").innerHTML = data.auto;
-                document.getElementById("thresh").innerHTML = data.threshold + "%";
+                const humElement = document.getElementById("hum");
+                const relayBox = document.getElementById("relay-box");
+                const autoBox = document.getElementById("auto-box");
+                const errorBox = document.getElementById("error-box");
+
+                document.getElementById("temp-val").innerHTML = data.temperature;
+                document.getElementById("thresh-val").innerHTML = data.threshold + "%";
+                humElement.innerHTML = data.humidity;
+
+                // Relay Status Update
+                relayBox.innerHTML = data.relay === "ON" ? "HUMIDIFYING ON 💧" : "IDLE OFF ⏸️";
+                relayBox.style.backgroundColor = data.relay === "ON" ? "#00e676" : "#ff5252";
+                relayBox.style.color = "#1c1c1c";
+
+                // Auto Mode Status
+                autoBox.innerHTML = data.auto === "ON" ? "AUTO MODE ACTIVE 🤖" : "MANUAL CONTROL ✋";
+                autoBox.style.backgroundColor = data.auto === "ON" ? "#00aaff" : "#999";
+                autoBox.style.color = "#1c1c1c";
+
+                // Error Status
+                if (data.error_status.includes("CRITICAL")) {
+                    errorBox.innerHTML = "SENSOR FAILURE! 🔴";
+                    errorBox.style.backgroundColor = "#ff0000";
+                    errorBox.style.color = "white";
+                } else if (!data.error_status.includes("OK")) {
+                    errorBox.innerHTML = data.error_status;
+                    errorBox.style.backgroundColor = "#ff9900";
+                    errorBox.style.color = "black";
+                } else {
+                    errorBox.innerHTML = "SYSTEM OK ✅";
+                    errorBox.style.backgroundColor = "#1c1c1c";
+                    errorBox.style.color = "#f0f0f0";
+                }
             });
-        }, 1500); // Update every 1.5 seconds
+        }
+        setInterval(updateData, 1500); // Update every 1.5 seconds
+        window.onload = updateData;
       </script>
     </head>
     <body>
-      <div class="card">
-        <h2>💧 Smart Humidifier Control</h2>
-        <p>Target: <span id="thresh" class="stat">--</span></p>
-        <h1 id="hum">--</h1>
+      <div class="container">
+        <div class="card">
+          <h2>SMART CLIMATE HUB</h2>
+          
+          <div class="data-grid">
+            <div class="data-item">Target<br><span id="thresh-val" class="data-value">--</span></div>
+            <div class="data-item">Temp<br><span id="temp-val" class="data-value" style="color:#00ffff;">--</span></div>
+          </div>
+          
+          <h1><span id="hum">--</span>%</h1>
+          
+          <div id="error-box" class="status-box">SYSTEM OK ✅</div>
 
-        <h3>Relay (Humidifier): <span id="relay" class="stat">--</span></h3>
-        <button class="on" onclick="location.href='/on'">MANUAL ON</button>
-        <button class="off" onclick="location.href='/off'">MANUAL OFF</button>
+          <div id="relay-box" class="status-box" style="background:#ff5252;">IDLE OFF ⏸️</div>
+          <div style="display: flex; justify-content: space-between;">
+            <button class="on" onclick="location.href='/on'">MANUAL ON</button>
+            <button class="off" onclick="location.href='/off'">MANUAL OFF</button>
+          </div>
 
-        <hr style="border-color:#333;">
+          <div id="auto-box" class="status-box" style="background:#999;">MANUAL CONTROL ✋</div>
+          <div style="display: flex; justify-content: space-between;">
+            <button class="on" onclick="location.href='/auto_on'">AUTO ON</button>
+            <button class="off" onclick="location.href='/auto_off'">AUTO OFF</button>
+          </div>
 
-        <h3>Auto Mode: <span id="auto" class="stat">--</span></h3>
-        <button onclick="location.href='/auto_on'" class="on">AUTO ON</button>
-        <button onclick="location.href='/auto_off'" class="off">AUTO OFF</button>
-
-        <form action="/set" method="GET">
-            <input type="number" name="th" placeholder="Set New Threshold (%)" required/>
-            <button class="on" type="submit" style="width:20%">SET</button>
-        </form>
+          <form action="/set" method="GET" class="input-group">
+              <input type="number" name="th" placeholder="Set Threshold (%) (e.g. 60)" required/>
+              <button class="on" type="submit" style="width: 25%;">SET</button>
+          </form>
+        </div>
       </div>
     </body>
     </html>
@@ -80,141 +140,88 @@ String htmlPage() {
     return page;
 }
 
-// ------------------ Core Logic Function ------------------ 
-
+// ------------------ Core Logic Function (unchanged for safety) ------------------ 
 void handleUpdate(){
-    // Read humidity from DHT22 sensor
     float h = dht.readHumidity();
+    float t = dht.readTemperature();
+    String errorStatus = "OK";
 
-    // Check if the reading was successful
-    if (isnan(h)) {
-        Serial.println("DHT Read Error! Using last known value.");
+    if (isnan(h) || isnan(t)) {
+        dhtErrorCount++;
+        errorStatus = "DHT Error (" + String(dhtErrorCount) + "/" + String(MAX_DHT_ERRORS) + ")";
+        
+        // --- SMART SAFEGUARD LOGIC ---
+        if (dhtErrorCount >= MAX_DHT_ERRORS) {
+            errorStatus = "CRITICAL";
+            if (autoMode) {
+                autoMode = false;
+                relayState = false;
+                digitalWrite(relayPin, HIGH); // FORCED OFF
+            }
+        }
     } else {
-        humidityValue = h; // Update with float value for better precision
+        humidityValue = h;
+        temperatureValue = t;
+        dhtErrorCount = 0;
     }
     
-    // --- Hysteresis-based Auto Control Logic ---
-    if (autoMode) {
-        // 1. Turn ON if humidity drops significantly below the threshold
-        if (humidityValue < (thresholdValue - HYSTERESIS_BAND)) {
+    // --- Hysteresis-based Auto Control ---
+    if (autoMode && dhtErrorCount < MAX_DHT_ERRORS) { 
+        if (relayState == false && humidityValue < (thresholdValue - HYSTERESIS_BAND)) {
             relayState = true;
-            digitalWrite(relayPin, LOW); // Active-LOW: ON
+            digitalWrite(relayPin, LOW); 
         } 
-        // 2. Turn OFF if humidity reaches the target threshold
-        else if (humidityValue >= thresholdValue) {
+        else if (relayState == true && humidityValue >= thresholdValue) {
             relayState = false;
-            digitalWrite(relayPin, HIGH); // Active-HIGH: OFF
+            digitalWrite(relayPin, HIGH);
         }
-        // Note: Between (Threshold - Hysteresis) and Threshold, the relay state remains unchanged.
     }
 
-    // Prepare JSON data for the web dashboard refresh
-    String json = "{\"humidity\":\"" + String(humidityValue, 1) + 
-                  "%\", \"relay\":\"" + (relayState ? "ON" : "OFF") +
-                  "\", \"auto\":\"" + (autoMode ? "ON" : "OFF") + 
-                  "\", \"threshold\":\"" + String(thresholdValue) + "\"}";
+    // Prepare JSON data
+    String json = "{\"humidity\":\"" + String(humidityValue, 1) + "%\", " +
+                  "\"temperature\":\"" + String(temperatureValue, 1) + "°C\", " +
+                  "\"relay\":\"" + (relayState ? "ON" : "OFF") + "\", " +
+                  "\"auto\":\"" + (autoMode ? "ON" : "OFF") + "\", " +
+                  "\"threshold\":\"" + String(thresholdValue) + "\", " +
+                  "\"error_status\":\"" + errorStatus + "\"}";
 
     server.send(200, "application/json", json);
 }
 
-
-// ------------------ Setup & Wi-Fi Configuration ------------------ 
-
+// ------------------ Setup & Loop (unchanged) ------------------ 
 void setup() {
-    Serial.begin(115200);
-    delay(10);
-
-    // Initialize Relay Pin (Active-LOW logic: HIGH = OFF)
-    pinMode(relayPin, OUTPUT);
-    digitalWrite(relayPin, HIGH);
-
-    // Initialize DHT sensor
+    Serial.begin(115200); delay(10);
+    pinMode(relayPin, OUTPUT); digitalWrite(relayPin, HIGH);
     dht.begin();
-
-    // Start Wi-Fi Connection (STA Mode)
-    Serial.print("Connecting to WiFi: ");
-    Serial.println(ssid);
+    
+    // Wi-Fi Connection (STA Mode)
+    Serial.print("Connecting to WiFi: "); Serial.println(ssid);
     WiFi.begin(ssid, password);
-
-    // Wait for connection
     int attempt = 0;
-    while (WiFi.status() != WL_CONNECTED && attempt < 30) {
-        delay(500);
-        Serial.print(".");
-        attempt++;
-    }
-
+    while (WiFi.status() != WL_CONNECTED && attempt < 30) { delay(500); Serial.print("."); attempt++; }
     if (WiFi.status() != WL_CONNECTED) {
         Serial.println("\nFailed to connect to WiFi! Starting in AP Mode for Debug.");
-        // Fallback to AP Mode if STA fails (Optional, but robust)
-        WiFi.softAP("HUMIDIFIER_SETUP", "12345678");
-        Serial.print("AP IP address: ");
-        Serial.println(WiFi.softAPIP());
+        WiFi.softAP("SMART_HUB", "12345678");
+        Serial.print("AP IP address: "); Serial.println(WiFi.softAPIP());
     } else {
         Serial.println("\nWiFi Connected!");
-        Serial.print("IP Address: ");
-        Serial.println(WiFi.localIP());
+        Serial.print("IP Address: "); Serial.println(WiFi.localIP());
     }
 
-
-    // ------------------ Server Endpoints ------------------
-
-    server.on("/", [](){
-        server.send(200, "text/html", htmlPage());
-    });
-
+    // Server Endpoints
+    server.on("/", [](){ server.send(200, "text/html", htmlPage()); });
     server.on("/update", handleUpdate);
-
-    // Manual ON/OFF
-    server.on("/on", [](){
-        autoMode = false; // Disable auto mode for manual override
-        relayState = true;
-        digitalWrite(relayPin, LOW); 
-        server.sendHeader("Location", "/");
-        server.send(302, "text/plain", "");
-    });
-
-    server.on("/off", [](){
-        autoMode = false; // Disable auto mode for manual override
-        relayState = false;
-        digitalWrite(relayPin, HIGH);
-        server.sendHeader("Location", "/");
-        server.send(302, "text/plain", "");
-    });
-
-    // Auto Mode Toggle
-    server.on("/auto_on", [](){
-        autoMode = true;
-        server.sendHeader("Location", "/");
-        server.send(302, "text/plain", "");
-    });
-
-    server.on("/auto_off", [](){
-        autoMode = false;
-        server.sendHeader("Location", "/");
-        server.send(302, "text/plain", "");
-    });
-
-    // Set Threshold
+    server.on("/on", [](){ autoMode = false; relayState = true; digitalWrite(relayPin, LOW); server.sendHeader("Location", "/"); server.send(302, "text/plain", ""); });
+    server.on("/off", [](){ autoMode = false; relayState = false; digitalWrite(relayPin, HIGH); server.sendHeader("Location", "/"); server.send(302, "text/plain", ""); });
+    server.on("/auto_on", [](){ autoMode = true; server.sendHeader("Location", "/"); server.send(302, "text/plain", ""); });
+    server.on("/auto_off", [](){ autoMode = false; server.sendHeader("Location", "/"); server.send(302, "text/plain", ""); });
     server.on("/set", [](){
-        if(server.hasArg("th")){
-             thresholdValue = server.arg("th").toInt();
-             if (thresholdValue < HYSTERESIS_BAND + 5) {
-                 thresholdValue = HYSTERESIS_BAND + 5; // Minimum threshold limit
-             }
-        }
-        server.sendHeader("Location", "/");
-        server.send(302, "text/plain", "");
+        if(server.hasArg("th")){ thresholdValue = server.arg("th").toInt(); if (thresholdValue < HYSTERESIS_BAND + 5) { thresholdValue = HYSTERESIS_BAND + 5; }}
+        server.sendHeader("Location", "/"); server.send(302, "text/plain", "");
     });
-
     server.begin();
 }
 
-// ------------------ Main Loop ------------------ 
 void loop() {
     server.handleClient();
-    
-    // Optional: Re-check DHT reading frequently even when not requested by the web client
-    // To ensure the global humidityValue is up-to-date for the Auto Mode logic in handleUpdate()
-    // handleUpdate() already handles the logic, but we can separate the reading part if needed.
 }

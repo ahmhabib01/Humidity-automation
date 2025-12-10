@@ -79,7 +79,7 @@ The device attempts to connect to your home Wi-Fi first (STA Mode). If credentia
 
 ### 3\. ⚙️ Code Configuration and Upload
 
-1.  Humidity Automation Arduino sketch (`.ino` file).
+1.   Download and open [humidity.ino](https://github.com/ahmhabib01/Humidity-automation/blob/main/humidity.ino) with Arduino IDE
 2.  **Optional:** Update the Wi-Fi credentials for STA Mode (if using your home network):
     ```cpp
     const char* ssid = "YOUR_HOME_WIFI_NAME";

@@ -6,8 +6,8 @@
 ESP8266WebServer server(80);
 
 // ------------------ SETTINGS ------------------
-const char* ssid = "A H M Habib";
-const char* password = "12345678";
+const char* ssid = "YOUR_HOME_WIFI_NAME";
+const char* password = "YOUR_WIFI_PASSWORD";
 
 // Pin Definitions
 #define DHTPIN D2           // DHT22 Data pin connected to D2 (GPIO4)
@@ -27,8 +27,9 @@ float temperatureValue = 0.0;
 bool relayState = false;
 int dhtErrorCount = 0;
 const int MAX_DHT_ERRORS = 5; 
+bool isSensorReady = false; // NEW: Flag to indicate first successful read
 
-// ------------------ MIND-BLOWING HTML UI ------------------ 
+// ------------------ MIND-BLOWING HTML UI (UNCHANGED) ------------------ 
 String htmlPage() {
     String page = R"=====(
     <html>
@@ -87,6 +88,10 @@ String htmlPage() {
                     errorBox.innerHTML = "SENSOR FAILURE! 🔴";
                     errorBox.style.backgroundColor = "#ff0000";
                     errorBox.style.color = "white";
+                } else if (data.error_status.includes("READY")) { // NEW: Sensor Ready state
+                    errorBox.innerHTML = "SENSOR INITIALIZING...";
+                    errorBox.style.backgroundColor = "#ffc107"; // Yellow
+                    errorBox.style.color = "black";
                 } else if (!data.error_status.includes("OK")) {
                     errorBox.innerHTML = data.error_status;
                     errorBox.style.backgroundColor = "#ff9900";
@@ -140,18 +145,23 @@ String htmlPage() {
     return page;
 }
 
-// ------------------ Core Logic Function (unchanged for safety) ------------------ 
+// ------------------ Core Logic Function (Bug Fixes Applied) ------------------ 
 void handleUpdate(){
     float h = dht.readHumidity();
     float t = dht.readTemperature();
     String errorStatus = "OK";
 
     if (isnan(h) || isnan(t)) {
+        if (isSensorReady == false) {
+             errorStatus = "SENSOR READY..."; // New: Indicate initial startup phase
+        }
         dhtErrorCount++;
-        errorStatus = "DHT Error (" + String(dhtErrorCount) + "/" + String(MAX_DHT_ERRORS) + ")";
+        if (isSensorReady) { // Only count errors after a successful read
+            errorStatus = "DHT Error (" + String(dhtErrorCount) + "/" + String(MAX_DHT_ERRORS) + ")";
+        }
         
-        // --- SMART SAFEGUARD LOGIC ---
-        if (dhtErrorCount >= MAX_DHT_ERRORS) {
+        // --- SMART SAFEGUARD LOGIC (If sensor fails permanently) ---
+        if (dhtErrorCount >= MAX_DHT_ERRORS && isSensorReady) {
             errorStatus = "CRITICAL";
             if (autoMode) {
                 autoMode = false;
@@ -162,15 +172,19 @@ void handleUpdate(){
     } else {
         humidityValue = h;
         temperatureValue = t;
-        dhtErrorCount = 0;
+        dhtErrorCount = 0; // Reset error count
+        isSensorReady = true; // Sensor is successfully reading data
     }
     
-    // --- Hysteresis-based Auto Control ---
-    if (autoMode && dhtErrorCount < MAX_DHT_ERRORS) { 
+    // --- Hysteresis-based Auto Control (Bug Fix: Only run if sensor is ready) ---
+    if (autoMode && isSensorReady && dhtErrorCount < MAX_DHT_ERRORS) { 
+        
+        // Turn ON condition: If currently OFF AND Humidity is low enough
         if (relayState == false && humidityValue < (thresholdValue - HYSTERESIS_BAND)) {
             relayState = true;
             digitalWrite(relayPin, LOW); 
         } 
+        // Turn OFF condition: If currently ON AND Humidity is high enough
         else if (relayState == true && humidityValue >= thresholdValue) {
             relayState = false;
             digitalWrite(relayPin, HIGH);
@@ -188,7 +202,7 @@ void handleUpdate(){
     server.send(200, "application/json", json);
 }
 
-// ------------------ Setup & Loop (unchanged) ------------------ 
+// ------------------ Setup & Loop (UNCHANGED) ------------------ 
 void setup() {
     Serial.begin(115200); delay(10);
     pinMode(relayPin, OUTPUT); digitalWrite(relayPin, HIGH);

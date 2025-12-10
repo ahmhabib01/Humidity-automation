@@ -8,8 +8,8 @@ ESP8266WebServer server(80);
 // ------------------ Wi-Fi & PIN SETTINGS ------------------
 // Ei du'ti apnar nijer home/office Wi-Fi details diye bodlan (Optional)
 // Jodi na bodlan, tobe ESP 'SMART_HUB' naam-e nijer network toiri korbe.
-const char* ssid = "APNAR_HOME_WIFI_NAME";
-const char* password = "APNAR_WIFI_PASSWORD";
+const char* ssid = "YOUR_HOME_WIFI_NAME";
+const char* password = "YOUR_WIFI_PASSWORD";
 
 // Pin Definitions
 #define DHTPIN D2           // DHT22 Data pin connected to D2 (GPIO4)

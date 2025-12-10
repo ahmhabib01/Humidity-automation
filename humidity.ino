@@ -5,9 +5,11 @@
 // ESP8266 Web Server initialization
 ESP8266WebServer server(80);
 
-// ------------------ SETTINGS ------------------
-const char* ssid = "YOUR_HOME_WIFI_NAME";
-const char* password = "YOUR_WIFI_PASSWORD";
+// ------------------ Wi-Fi & PIN SETTINGS ------------------
+// Ei du'ti apnar nijer home/office Wi-Fi details diye bodlan (Optional)
+// Jodi na bodlan, tobe ESP 'SMART_HUB' naam-e nijer network toiri korbe.
+const char* ssid = "APNAR_HOME_WIFI_NAME";
+const char* password = "APNAR_WIFI_PASSWORD";
 
 // Pin Definitions
 #define DHTPIN D2           // DHT22 Data pin connected to D2 (GPIO4)
@@ -21,25 +23,25 @@ bool autoMode = false;
 int thresholdValue = 65;
 int HYSTERESIS_BAND = 5;
 
-// Sensor Readings & Safety
+// Sensor Readings & Safety Logic Variables
 float humidityValue = 0.0;
 float temperatureValue = 0.0;
 bool relayState = false;
 int dhtErrorCount = 0;
 const int MAX_DHT_ERRORS = 5; 
-bool isSensorReady = false; // NEW: Flag to indicate first successful read
+bool isSensorReady = false; // Flag to ensure Auto Mode doesn't run on boot-up garbage data
 
-// ------------------ MIND-BLOWING HTML UI (UNCHANGED) ------------------ 
+// ------------------ MIND-BLOWING HTML UI (Internet-Free CSS) ------------------ 
 String htmlPage() {
+    // R"=====(...)=====" block er modhye shob HTML/CSS/JS ache
     String page = R"=====(
     <html>
     <head>
       <title>✨ Smart Climate Hub ✨</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap');
-        
-        body { background:#0a0a0a; color:#f0f0f0; font-family: 'Roboto', sans-serif; text-align:center; margin: 0; padding: 0;}
+        /* Internet-free CSS: Using system fonts for reliability */
+        body { background:#0a0a0a; color:#f0f0f0; font-family: 'Arial', sans-serif; text-align:center; margin: 0; padding: 0;}
         .container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         .card { background:#1c1c1c; width:90%; max-width:400px; padding:30px; border-radius:20px; box-shadow: 0 10px 30px rgba(0, 255, 255, 0.15); border: 1px solid #333; margin-top: 10px;}
         
@@ -88,9 +90,9 @@ String htmlPage() {
                     errorBox.innerHTML = "SENSOR FAILURE! 🔴";
                     errorBox.style.backgroundColor = "#ff0000";
                     errorBox.style.color = "white";
-                } else if (data.error_status.includes("READY")) { // NEW: Sensor Ready state
+                } else if (data.error_status.includes("READY")) { 
                     errorBox.innerHTML = "SENSOR INITIALIZING...";
-                    errorBox.style.backgroundColor = "#ffc107"; // Yellow
+                    errorBox.style.backgroundColor = "#ffc107"; 
                     errorBox.style.color = "black";
                 } else if (!data.error_status.includes("OK")) {
                     errorBox.innerHTML = data.error_status;
@@ -103,7 +105,7 @@ String htmlPage() {
                 }
             });
         }
-        setInterval(updateData, 1500); // Update every 1.5 seconds
+        setInterval(updateData, 1500); 
         window.onload = updateData;
       </script>
     </head>
@@ -145,7 +147,7 @@ String htmlPage() {
     return page;
 }
 
-// ------------------ Core Logic Function (Bug Fixes Applied) ------------------ 
+// ------------------ Core Logic Function (Bug Free Hysteresis & Safety) ------------------ 
 void handleUpdate(){
     float h = dht.readHumidity();
     float t = dht.readTemperature();
@@ -153,14 +155,14 @@ void handleUpdate(){
 
     if (isnan(h) || isnan(t)) {
         if (isSensorReady == false) {
-             errorStatus = "SENSOR READY..."; // New: Indicate initial startup phase
+             errorStatus = "SENSOR READY..."; 
         }
         dhtErrorCount++;
-        if (isSensorReady) { // Only count errors after a successful read
+        if (isSensorReady) { 
             errorStatus = "DHT Error (" + String(dhtErrorCount) + "/" + String(MAX_DHT_ERRORS) + ")";
         }
         
-        // --- SMART SAFEGUARD LOGIC (If sensor fails permanently) ---
+        // --- SMART SAFEGUARD LOGIC: FORCE OFF ---
         if (dhtErrorCount >= MAX_DHT_ERRORS && isSensorReady) {
             errorStatus = "CRITICAL";
             if (autoMode) {
@@ -172,22 +174,22 @@ void handleUpdate(){
     } else {
         humidityValue = h;
         temperatureValue = t;
-        dhtErrorCount = 0; // Reset error count
-        isSensorReady = true; // Sensor is successfully reading data
+        dhtErrorCount = 0; 
+        isSensorReady = true; 
     }
     
-    // --- Hysteresis-based Auto Control (Bug Fix: Only run if sensor is ready) ---
+    // --- Hysteresis-based Auto Control (Only runs if sensor is reliable) ---
     if (autoMode && isSensorReady && dhtErrorCount < MAX_DHT_ERRORS) { 
         
-        // Turn ON condition: If currently OFF AND Humidity is low enough
+        // Turn ON condition: If currently OFF AND Humidity is low enough (Target - Hysteresis)
         if (relayState == false && humidityValue < (thresholdValue - HYSTERESIS_BAND)) {
             relayState = true;
-            digitalWrite(relayPin, LOW); 
+            digitalWrite(relayPin, LOW); // ON (Active LOW)
         } 
-        // Turn OFF condition: If currently ON AND Humidity is high enough
+        // Turn OFF condition: If currently ON AND Humidity is high enough (Target)
         else if (relayState == true && humidityValue >= thresholdValue) {
             relayState = false;
-            digitalWrite(relayPin, HIGH);
+            digitalWrite(relayPin, HIGH); // OFF (Active HIGH)
         }
     }
 
@@ -202,7 +204,7 @@ void handleUpdate(){
     server.send(200, "application/json", json);
 }
 
-// ------------------ Setup & Loop (UNCHANGED) ------------------ 
+// ------------------ Setup & Loop ------------------ 
 void setup() {
     Serial.begin(115200); delay(10);
     pinMode(relayPin, OUTPUT); digitalWrite(relayPin, HIGH);
@@ -213,10 +215,13 @@ void setup() {
     WiFi.begin(ssid, password);
     int attempt = 0;
     while (WiFi.status() != WL_CONNECTED && attempt < 30) { delay(500); Serial.print("."); attempt++; }
+    
+    // Check connection result
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("\nFailed to connect to WiFi! Starting in AP Mode for Debug.");
+        Serial.println("\nFailed to connect to WiFi! Starting in AP Mode.");
+        // AP Mode Fallback
         WiFi.softAP("SMART_HUB", "12345678");
-        Serial.print("AP IP address: "); Serial.println(WiFi.softAPIP());
+        Serial.print("AP IP address: "); Serial.println(WiFi.softAPIP()); // Should be 192.168.4.1
     } else {
         Serial.println("\nWiFi Connected!");
         Serial.print("IP Address: "); Serial.println(WiFi.localIP());

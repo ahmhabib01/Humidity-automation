@@ -10,7 +10,7 @@ To build an extremely reliable, Wi-Fi-controlled, and aesthetically pleasing **A
 
 ---
 
-## ✨ **The Mindblowing Edge**
+## ✨ **Edge**
 
 | Feature | Impact | Status |
 | :--- | :--- | :--- |
@@ -38,22 +38,13 @@ The device attempts to connect to your home Wi-Fi first (STA Mode). If credentia
 | Mode | Network Name | Access IP | Access Requirement |
 | :--- | :--- | :--- | :--- |
 | **STA Mode** (Home Wi-Fi) | Your Router's SSID | `192.168.x.xxx` | Device must be on the same network. |
-| **AP Mode** (Direct Link) | **`SMART_HUB`** (Pass: `12345678`) | **`192.168.4.1`** | **No Internet Required.** Connect directly to this network. |
-
----
-
-## 📐 **The Hysteresis Principle**
-
-The Smart Climate Hub uses a $5\%$ hysteresis band to maintain target humidity and prevent short-cycling.
-
-* **Target (e.g., 65%):** The ideal max humidity.
-* **Humidifier ON:** Only when Humidity $\le$ **$60\%$** ($\text{Target} - 5\%$).
-* **Humidifier OFF:** Only when Humidity $\ge$ **$65\%$** ($\text{Target}$).
+| **AP Mode** (Direct Link) | **`BDC_2.0`** (Pass: `ahmhabib01`) | **`192.168.4.1`** | **No Internet Required.** Connect directly to this network. |
 
 ---
 
 
-## 🛠️ **Step-by-Step Setup Guide**
+
+## 🛠️ **Setup Guide**
 
 ### 1\. 🔌 Hardware Wiring
 

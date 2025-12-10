@@ -2,7 +2,7 @@
 
 ---
 
-# 🚀 **The Smart Climate Hub** 💧
+# 🚀 **Humidity Automation** 💧
 
 ## 🎯 **Project Goal**
 
@@ -79,7 +79,7 @@ The device attempts to connect to your home Wi-Fi first (STA Mode). If credentia
 
 ### 3\. ⚙️ Code Configuration and Upload
 
-1.  Open the Smart Climate Hub Arduino sketch (`.ino` file).
+1.  Humidity Automation Arduino sketch (`.ino` file).
 2.  **Optional:** Update the Wi-Fi credentials for STA Mode (if using your home network):
     ```cpp
     const char* ssid = "YOUR_HOME_WIFI_NAME";
@@ -107,7 +107,7 @@ The device attempts to connect to your home Wi-Fi first (STA Mode). If credentia
 
 ## 🧠 **Core Logic: The Hysteresis Principle**
 
-The Smart Climate Hub uses a $5\%$ hysteresis band to maintain target humidity and prevent short-cycling.
+Humidity Automation uses a $5\%$ hysteresis band to maintain target humidity and prevent short-cycling.
 
   * **Target (e.g., 65%):** The ideal max humidity.
   * **Humidifier ON:** Only when Humidity $\le$ **$60\%$** ($\text{Target} - 5\%$).

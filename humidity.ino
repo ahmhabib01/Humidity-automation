@@ -6,8 +6,6 @@
 ESP8266WebServer server(80);
 
 // ------------------ Wi-Fi & PIN SETTINGS ------------------
-// Ei du'ti apnar nijer home/office Wi-Fi details diye bodlan (Optional)
-// Jodi na bodlan, tobe ESP 'SMART_HUB' naam-e nijer network toiri korbe.
 const char* ssid = "YOUR_HOME_WIFI_NAME";
 const char* password = "YOUR_WIFI_PASSWORD";
 
@@ -31,9 +29,9 @@ int dhtErrorCount = 0;
 const int MAX_DHT_ERRORS = 5; 
 bool isSensorReady = false; // Flag to ensure Auto Mode doesn't run on boot-up garbage data
 
-// ------------------ MIND-BLOWING HTML UI (Internet-Free CSS) ------------------ 
+// ------------------HTML UI------------------ 
 String htmlPage() {
-    // R"=====(...)=====" block er modhye shob HTML/CSS/JS ache
+    // R"=====(...)====="
     String page = R"=====(
     <html>
     <head>
@@ -147,7 +145,7 @@ String htmlPage() {
     return page;
 }
 
-// ------------------ Core Logic Function (Bug Free Hysteresis & Safety) ------------------ 
+// ------------------ Core Logic Function------------------ 
 void handleUpdate(){
     float h = dht.readHumidity();
     float t = dht.readTemperature();
@@ -220,7 +218,7 @@ void setup() {
     if (WiFi.status() != WL_CONNECTED) {
         Serial.println("\nFailed to connect to WiFi! Starting in AP Mode.");
         // AP Mode Fallback
-        WiFi.softAP("SMART_HUB", "12345678");
+        WiFi.softAP("BDC_2.0", "ahmhabib01");
         Serial.print("AP IP address: "); Serial.println(WiFi.softAPIP()); // Should be 192.168.4.1
     } else {
         Serial.println("\nWiFi Connected!");

@@ -67,6 +67,12 @@ The device attempts to connect to your home Wi-Fi first (STA Mode). If credentia
 | **Relay GND** | **GND** | Relay Ground. |
 | **Relay IN** | **D1 (GPIO5)** | Control Signal from ESP. (Active-LOW Logic) |
 
+|Humidifier Power (+) | Connect to Relay NO (Normally Open) terminal|
+
+|Power Source (+) | Connect to Relay COM (Common) terminal|
+
+|Humidifier Ground (-) | Connect directly to Power Source Ground (-)|
+
 > ⚠️ **Safety Note:** Connect the humidifier's power line to the relay's **Common (COM)** and **Normally Open (NO)** terminals. Never connect high voltage while the ESP8266 is powered on.
 
 -----

@@ -80,6 +80,8 @@ The device attempts to connect to your home Wi-Fi first (STA Mode). If credentia
 
 ### 2\. 💻 Software and Library Installation
 
+<img src="https://github.com/ahmhabib01/WIFI_PHISHER/blob/main/Readme/readme.jpg"></img><br>
+
 1.  **Open Arduino IDE** and go to **File \> Preferences**.
 2.  Add the following URL to "Additional Boards Manager URLs":
     ```

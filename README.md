@@ -1,7 +1,7 @@
 ---
 <div align="center" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:center;align-items:center;margin-top:15px;margin-bottom:10px;">
-  <img src="https://github.com/ahmhabib01/Humidity-automation/blob/main/images/empty/chart.png" alt="cell1" style="width:170px;max-width:40vw;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6)" />
-  <img src="https://github.com/ahmhabib01/Humidity-automation/blob/main/images/empty/setup.png" alt="cell2" style="width:170px;max-width:40vw;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6)" />
+  <img src="https://github.com/ahmhabib01/Humidity-automation/blob/main/images/empty/chart.png" alt="cell1" style="width:250px;max-width:100vw;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6)" />
+  <img src="https://github.com/ahmhabib01/Humidity-automation/blob/main/images/empty/setup.png" alt="cell2" style="width:250px;max-width:100vw;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6)" />
 </div>
 
 # 🚀 **Humidity Automation** 💧

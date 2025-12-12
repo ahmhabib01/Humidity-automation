@@ -127,3 +127,15 @@ Humidity Automation uses a $5\%$ hysteresis band to maintain target humidity and
   * **Target (e.g., 65%):** The ideal max humidity.
   * **Humidifier ON:** Only when Humidity $\le$ **$60\%$** ($\text{Target} - 5\%$).
   * **Humidifier OFF:** Only when Humidity $\ge$ **$65\%$** ($\text{Target}$).
+-----
+
+## **𝐀𝐁𝐎𝐔𝐓 𝐔𝐒**
+
+ - Developed By [AHSAN HABIB](https://www.facebook.com/ahm.habib.39)
+
+ <img src="https://github.com/ahmhabib01/Facebook-Auto-Dump/blob/main/README/1702310207822.jpg"></img><br>
+
+ - CEO and ADMIN of [BANGLADESH CYBER 2.0](https://www.facebook.com/profile.php?id=61554490682335)
+ 
+<img src="https://github.com/ahmhabib01/Facebook-Auto-Dump/blob/main/README/bdc2.0.png"></img><br>
+

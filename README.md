@@ -116,7 +116,7 @@ The device attempts to connect to your home Wi-Fi first (STA Mode). If credentia
 | Mode | Network Name | Access IP | Access Requirement |
 | :--- | :--- | :--- | :--- |
 | **STA Mode** (Home Wi-Fi) | Your Router's SSID | `192.168.x.xxx` (Dynamic IP) | Device must be on the same home network. |
-| **AP Mode** (Direct Link) | **`BDC_2.0`** (Pass: `ahmhabib01`) | **`192.168.4.1`** (Static IP) | Connect directly to the `SMART_HUB` network. |
+| **AP Mode** (Direct Link) | **`BDC_2.0`** (Pass: `ahmhabib01`) | **`192.168.4.1`** (Static IP) | Connect directly to the `BDC_2.0` network. |
 
 > 💡 **Tip:** If the dashboard doesn't load in AP Mode, ensure your phone's Mobile Data is temporarily turned **OFF**.
 

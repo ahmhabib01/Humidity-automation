@@ -29,7 +29,7 @@ To build an extremely reliable, Wi-Fi-controlled, and aesthetically pleasing **A
   <img src="https://github.com/ahmhabib01/Humidity-automation/blob/main/images/empty/Esp8266.png" alt="cell1" style="width:170px;max-width:40vw;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6)" />
   <img src="https://github.com/ahmhabib01/Humidity-automation/blob/main/images/empty/DHT22.png" alt="cell2" style="width:170px;max-width:40vw;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6)" />
   <img src="https://github.com/ahmhabib01/Humidity-automation/blob/main/images/empty/1channel5vrelay.png" alt="cell3" style="width:170px;max-width:40vw;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6)" />
-   <img src="https://github.com/ahmhabib01/Humidity-automation/blob/main/images/empty/humidifier.png" alt="cell3" style="width:170px;max-width:40vw;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6)" />
+   <img src="https://github.com/ahmhabib01/Humidity-automation/blob/main/images/empty/humidifier.png" alt="cell4" style="width:170px;max-width:40vw;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6)" />
 </div>
 
 | Component | Role | Pins Used (NodeMCU) |

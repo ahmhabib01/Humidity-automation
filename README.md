@@ -36,7 +36,7 @@ To build an extremely reliable, Wi-Fi-controlled, and aesthetically pleasing **A
 | **Microcontroller** | ESP8266 | Wi-Fi Station/AP Mode, Web Server |
 | **Sensor** | DHT22 | **D2 (GPIO4)**: Humidity & Temp Data |
 | **Actuator** | 1-Channel Relay | **D1 (GPIO5)**: Humidifier Control (Active-LOW) |
-
+| **Output Device**|Humidifier|**Generates mist (Ultrasonic/USB Mist Maker)**|
 ---
 
 ## 🌐 **Connectivity**

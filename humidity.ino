@@ -2,40 +2,35 @@
 #include <ESP8266WebServer.h>
 #include <DHT.h>
 
-// ESP8266 Web Server initialization
 ESP8266WebServer server(80);
 
 // ------------------ Wi-Fi & PIN SETTINGS ------------------
 const char* ssid = "YOUR_HOME_WIFI_NAME";
 const char* password = "YOUR_WIFI_PASSWORD";
 
-// Pin Definitions
-#define DHTPIN D2           // DHT22 Data pin connected to D2 (GPIO4)
+#define DHTPIN D2           
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-int relayPin = D1;          // Relay control pin connected to D1 (GPIO5)
+int relayPin = D1;          
 
-// ------------------ CONTROL & SAFETY VARIABLES ------------------
 bool autoMode = false;
 int thresholdValue = 65;
 int HYSTERESIS_BAND = 5;
 
-// Sensor Readings & Safety Logic Variables
 float humidityValue = 0.0;
 float temperatureValue = 0.0;
 bool relayState = false;
 int dhtErrorCount = 0;
 const int MAX_DHT_ERRORS = 5; 
-bool isSensorReady = false; // Flag to ensure Auto Mode doesn't run on boot-up garbage data
+bool isSensorReady = false; 
 
-// ------------------HTML UI------------------ 
 String htmlPage() {
     // R"=====(...)====="
     String page = R"=====(
     <html>
     <head>
-      <title>✨ Smart Climate Hub ✨</title>
+      <title>✨ Humidity Atomation ✨</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <style>
         /* Internet-free CSS: Using system fonts for reliability */
@@ -110,7 +105,7 @@ String htmlPage() {
     <body>
       <div class="container">
         <div class="card">
-          <h2>SMART CLIMATE HUB</h2>
+          <h2>Humidity Aoutomation</h2>
           
           <div class="data-grid">
             <div class="data-item">Target<br><span id="thresh-val" class="data-value">--</span></div>
@@ -145,7 +140,7 @@ String htmlPage() {
     return page;
 }
 
-// ------------------ Core Logic Function------------------ 
+
 void handleUpdate(){
     float h = dht.readHumidity();
     float t = dht.readTemperature();
@@ -160,7 +155,7 @@ void handleUpdate(){
             errorStatus = "DHT Error (" + String(dhtErrorCount) + "/" + String(MAX_DHT_ERRORS) + ")";
         }
         
-        // --- SMART SAFEGUARD LOGIC: FORCE OFF ---
+    
         if (dhtErrorCount >= MAX_DHT_ERRORS && isSensorReady) {
             errorStatus = "CRITICAL";
             if (autoMode) {
@@ -176,15 +171,15 @@ void handleUpdate(){
         isSensorReady = true; 
     }
     
-    // --- Hysteresis-based Auto Control (Only runs if sensor is reliable) ---
+    
     if (autoMode && isSensorReady && dhtErrorCount < MAX_DHT_ERRORS) { 
         
-        // Turn ON condition: If currently OFF AND Humidity is low enough (Target - Hysteresis)
+        
         if (relayState == false && humidityValue < (thresholdValue - HYSTERESIS_BAND)) {
             relayState = true;
             digitalWrite(relayPin, LOW); // ON (Active LOW)
         } 
-        // Turn OFF condition: If currently ON AND Humidity is high enough (Target)
+        
         else if (relayState == true && humidityValue >= thresholdValue) {
             relayState = false;
             digitalWrite(relayPin, HIGH); // OFF (Active HIGH)
